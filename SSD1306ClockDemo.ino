@@ -87,7 +87,8 @@
 // SH1106Brzo  display(0x3c, D3, D5);
 
 // Initialize the OLED display using Wire library
-SSD1306  display(0x3c, 14, 12);
+//SSD1306  display(0x3c, 14, 12);// pour la boule 
+SSD1306  display(0x3c, 5, 4);// pour le truc long et maintenant la boule
 //SH1106 display(0x3c, 5, 4);
 
 OLEDDisplayUi ui ( &display );
@@ -100,6 +101,14 @@ float clockRadius = 23.0f;
 
 String Temperature_inter = "0";
 String Temperature_exter="0";
+String vitesse_vent="0";
+String vent_max ="0";
+String vent_moy ="0";
+String Temperature_exter_Maxi="0";
+String Temperature_exter_mini="0";
+String Temperature_inter_Maxi="0";
+String Temperature_inter_mini="0";
+
 
 // SSID and PW for your Router
 String Router_SSID;
@@ -195,7 +204,7 @@ void digitalClockFrame(OLEDDisplay *display, OLEDDisplayUiState* state,  int16_t
   String timenow = String(hour())+":"+twoDigits(minute())+":"+twoDigits(second());
   display->setTextAlignment(TEXT_ALIGN_CENTER);
   display->setFont(ArialMT_Plain_24);
-  display->drawString(clockCenterX + x , clockCenterY + y-10, timenow );
+  display->drawString(clockCenterX + x , clockCenterY + y-20, timenow );
 }
 
 
@@ -203,13 +212,14 @@ void temperatures(OLEDDisplay *display, OLEDDisplayUiState *state,  int16_t x, i
   
    //display->setFontScale2x2(true);
    display->setFont(ArialMT_Plain_16);
-   display->drawString(60 + x, 16 + y, "T Inter");
-  // display->drawXbm(x,y, 60, 60, xbmtemp);
- // display.setFontScale2x2(true)
+   display->drawString(80 + x, 8 + y, "T° exter");
+   display->drawXbm(x,y, 60, 60, xbmtemp);
+   //display.setFontScale2x2(true)
    //display->setFontScale2x2(true);
-   display->drawString(clockCenterX + x-10, clockCenterY + y, Temperature_inter + " °C");
+   display->drawString(80 + x, 26 + y, Temperature_exter + " °C");
    //display->setFontScale2x2(false);
-
+   display->setFont(ArialMT_Plain_10);    
+   display->drawString(56 + x, 45 + y, "Max "+Temperature_exter_Maxi+" / min "+Temperature_exter_mini);
 
 }
 
@@ -217,28 +227,51 @@ void temperatures_int(OLEDDisplay *display, OLEDDisplayUiState *state,  int16_t 
   
    //display->setFontScale2x2(true);
    display->setFont(ArialMT_Plain_16);
-   display->drawString(60 + x, 16 + y, "T Exter");
-  // display->drawXbm(x,y, 60, 60, xbmtemp);
- // display.setFontScale2x2(true)
+   display->drawString(80 + x, 8 + y, "T° inter");
+   display->drawXbm(x,y, 60, 60, xbmtemp);
+   //display.setFontScale2x2(true)
    //display->setFontScale2x2(true);
-   display->drawString(clockCenterX + x-10, clockCenterY + y, Temperature_exter + " °C");
+   display->drawString(80 + x, 26 + y, Temperature_inter + " °C");
    //display->setFontScale2x2(false);
+   display->setFont(ArialMT_Plain_10);    
+   display->drawString(56 + x, 45 + y, "Max "+Temperature_inter_Maxi+" / min "+Temperature_inter_mini);   
+}
 
+void vent2(OLEDDisplay *display, OLEDDisplayUiState *state,  int16_t x, int16_t y){
+  
+   //display->setFontScale2x2(true);
+   display->setFont(ArialMT_Plain_16);
+   display->drawString(70 + x, 16 + y, "Vent");
+   display->drawXbm(x,y, 50, 50, wind_bits);
+   //display.setFontScale2x2(true)
+   //display->setFontScale2x2(true);
+   display->drawString(clockCenterX + x+10, clockCenterY + y, vitesse_vent + " km/h");
+   //display->setFontScale2x2(false);
+}
 
+void vent(OLEDDisplay *display, OLEDDisplayUiState *state,  int16_t x, int16_t y) {
+  display->setFont(ArialMT_Plain_16);
+  display->drawString(80 + x, 8 + y, "Vent");  
+  display->drawXbm(x,y, 50, 50, wind_bits);  
+  display->drawString(80 + x, 26 + y, vitesse_vent + " km/h");
+  display->setFont(ArialMT_Plain_10);    
+  display->drawString(56 + x, 45 + y, "Max "+vent_max+" / Moy "+vent_moy);     
+    
 }
 
 // This array keeps function pointers to all frames
 // frames are the single views that slide in
-FrameCallback frames[] = { temperatures,temperatures_int, digitalClockFrame };
+FrameCallback frames[] = { temperatures,temperatures_int, digitalClockFrame,vent };
 
 // how many frames are there?
-int frameCount = 3;
+int frameCount = 4;
 
 // Overlays are statically drawn on top of a frame eg. a clock
 OverlayCallback overlays[] = { clockOverlay };
 int overlaysCount = 1;
 
 void setup() {
+  
   Serial.begin(115200);
   Serial.println("---");
   unsigned long startedAt = millis();
@@ -266,7 +299,7 @@ void setup() {
     display.clear();
     display.setFont(ArialMT_Plain_10);
     display.setTextAlignment(TEXT_ALIGN_LEFT);
-    display.drawString(0, 52, "Attente de connection");
+    display.drawString(0, 52, "Attente de connexion");
     display.drawXbm(38,3, 48, 50, phm_bits);
     display.display();
   }
@@ -393,8 +426,17 @@ void setup() {
   weather.lecture();
   delay(1000);
   Temperature_inter = weather.getCurrentTemp_int();
+  Temperature_inter_Maxi = weather.getTiMax();
+  Temperature_inter_mini = weather.getTiMin();  
   Temperature_exter = weather.getCurrentTemp_ext();
+  Temperature_exter_Maxi = weather.getToMax();
+  Temperature_exter_mini = weather.getToMin();  
+  vitesse_vent = weather.getvitessevent();
+  vent_max= weather.getventmax();
+  vent_moy = weather.getventmoy();
 
+  
+  
   Serial.println("Lecture init");
   Serial.print("Temp int ");
   Serial.println(Temperature_inter);
@@ -418,8 +460,15 @@ void loop() {
         previousMillis = currentMillis;
         weather.lecture();
         delay(1000);
-        Temperature_inter =weather.getCurrentTemp_int();
+        Temperature_inter = weather.getCurrentTemp_int();
+        Temperature_inter_Maxi = weather.getTiMax();
+        Temperature_inter_mini = weather.getTiMin();  
         Temperature_exter = weather.getCurrentTemp_ext();
+        Temperature_exter_Maxi = weather.getToMax();
+        Temperature_exter_mini = weather.getToMin();  
+        vitesse_vent = weather.getvitessevent();
+        vent_max= weather.getventmax();
+        vent_moy = weather.getventmoy();
         Serial.println("Lecture Mise a jour");
         Serial.print("Temp int ");
         Serial.println(Temperature_inter);

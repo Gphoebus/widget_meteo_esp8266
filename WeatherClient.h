@@ -38,8 +38,13 @@ class WeatherClient {
     const char* rhi;
     const char* rho;
     const char* ws;
+    const char* wsMax;
+    const char* wsMoy;
     const char* dir_vent;
-
+    const char* TiMax;    
+    const char* Timin;
+    const char* ToMax;    
+    const char* Tomin;      
 
     String currentTemp;
     int currentHumidity;
@@ -83,5 +88,10 @@ class WeatherClient {
     String getSummaryTomorrow(void);
     String getvitessevent(void);
     String getpression(void);
-  
+    String getventmoy(void);
+    String getventmax(void);
+    String getToMax(void);
+    String getToMin(void);
+    String getTiMax(void);
+    String getTiMin(void);
 };

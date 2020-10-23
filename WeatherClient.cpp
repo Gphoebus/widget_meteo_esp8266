@@ -41,41 +41,51 @@ void WeatherClient::lecture()
     //Check the returning code                                                                  
     if (httpCode ==200) {
       // Parsing
-    const size_t capacity = JSON_OBJECT_SIZE(10) + 90;
+      Serial.println("Code de retour 200");
+    const size_t capacity = JSON_OBJECT_SIZE(18)+210;
     DynamicJsonDocument root(capacity);
     String lejson = http.getString();
     Serial.println (lejson);
     DeserializationError error = deserializeJson(root,lejson);
-  if (error) {
-    Serial.print(F("deserializeJson() failed: "));
-    Serial.println(error.c_str());
-    return;
-  }
-  else{
-
-
-      delay(500);
-
-      temp_int = root["ti"];// temp inter
-      temp_out = root["tout"];// temp exter
-      dew_point = root["DP"];// point de rosée
-      rhi = root["RHi"];// humidité inter 
-      rho = root["RHo"];// humidité exter
-      ws = root["WS"]; // vitesse du vent
-      dir_vent = root["DIRtext"];// Direction du vent
-      pression = root["RP"];// pression atmospherique
-     
-      Serial.println("Aprés lecture");      
-      Serial.print("len Temp int ");
-      Serial.println(temp_int);
-
-      Serial.print("Temp ext ");
-      Serial.println(temp_out);
-/*
-      Serial.print("Pression atmospherique ");
-      Serial.println(pression);
-      */
-      }
+    if (error) {
+      Serial.print(F("deserializeJson() failed: "));
+      Serial.println(error.c_str());
+      return;
+    }
+    else{
+  
+  
+        delay(500);
+        Serial.println("Deserialisation en cours");      
+        temp_int = root["ti"].as<char*>();// temp inter
+        temp_out = root["tout"].as<char*>();// temp exter
+        dew_point = root["DP"].as<char*>();// point de rosée
+        rhi = root["RHi"].as<char*>();// humidité inter 
+        rho = root["RHo"].as<char*>();// humidité exter
+        ws = root["WS"].as<char*>(); // vitesse du vent
+        dir_vent = root["DIRtext"].as<char*>();// Direction du vent
+        pression = root["RP"].as<char*>();// pression atmospherique
+        wsMax = root["WSMax"].as<char*>(); // vitesse du vent Maxi
+        wsMoy = root["WSAvg"].as<char*>(); // vitesse du vent Moyenne
+        TiMax = root["timax"].as<char*>(); // Temp inter Maxi
+        Timin = root["timin"].as<char*>(); // Temp inter Maxi
+        ToMax = root["toutmax"].as<char*>(); // Temp inter Maxi
+        Tomin = root["toutmin"].as<char*>(); // Temp inter Maxi        
+       
+        Serial.println("Aprés lecture");      
+        Serial.print("len Temp int ");
+        Serial.println(temp_int);
+  
+        Serial.print("Temp ext ");
+        Serial.println(temp_out);
+  
+        Serial.print("vent ");
+        Serial.println(ws);
+  /*
+        Serial.print("Pression atmospherique ");
+        Serial.println(pression);
+        */
+        }
     }
     else
     {
@@ -212,10 +222,29 @@ String WeatherClient::getSummaryTomorrow(void) {
   return summaryTomorrow;
 }
 String WeatherClient::getvitessevent(void){
-  return vitesse_vent;
+  Serial.print("vent ");
+  Serial.println(ws);
+  return String (ws);
 }
 String WeatherClient::getpression(void){
   return pression;
 
 }
-
+String WeatherClient::getventmax(void){
+  return String (wsMax);
+}
+String WeatherClient::getventmoy(void){
+  return String (wsMoy);
+}
+String WeatherClient::getToMax(void){
+  return String (ToMax);
+}
+String WeatherClient::getToMin(void){
+  return String (Tomin);
+}
+String WeatherClient::getTiMax(void){
+  return String (TiMax);
+}
+String WeatherClient::getTiMin(void){
+  return String (Timin);
+}
